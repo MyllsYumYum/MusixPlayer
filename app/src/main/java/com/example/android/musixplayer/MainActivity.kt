@@ -27,12 +27,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.android.musixplayer.databinding.IntroBinding
 import com.example.android.musixplayer.databinding.MainLayoutBinding
 import com.example.android.musixplayer.databinding.MainMenuBinding
 import com.example.android.musixplayer.databinding.QeueListBinding
 import com.example.android.musixplayer.ui.theme.MusixPlayerTheme
+import java.io.File
 
 import kotlinx.coroutines.*
 
@@ -60,8 +62,9 @@ class MainActivity : ComponentActivity() {
             arrayOf("id","title","filepath"),
                 )
         var mp3mutable = mp3List.toMutableList()
-        mp3mutable = fetchMP3Files()
+        mp3mutable = scanForMP3Files()
         var titlebar1 = mainlayBinding.titleView1
+
         var titlebar2 = menuBinding.titleView2
         var titlebar3 = qeueBinding.titleView3
         var menu1 = mainlayBinding.menu1
@@ -82,7 +85,7 @@ class MainActivity : ComponentActivity() {
             if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
                 == PackageManager.PERMISSION_GRANTED
             ) {
-                scanForMP3Files()
+
             } else {
                 requestPermissions(
                     arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
@@ -90,7 +93,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         } else {
-            scanForMP3Files() // Directly scan on older versions
+             // Directly scan on older versions
         }
 
 
@@ -113,7 +116,7 @@ class MainActivity : ComponentActivity() {
 
         seekBar.max = mediaPlayer.duration
 //        titlebar1.text = getString(R.string.title)
-        titlebar1.text = getMediaTitle(mp3mutable[2][2])
+        titlebar1.text = mp3mutable[0][0]
 
         var curtrack = mediaPlayer.currentPosition
         var maxtrack = mediaPlayer.duration
@@ -186,7 +189,6 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////
 
-        mp3mutable = fetchMP3Files()
 
         titlebar2.setOnClickListener {
             setContentView(mainlayBinding.root)
@@ -227,47 +229,31 @@ class MainActivity : ComponentActivity() {
         }
 
         menuBinding.imageButton8.setOnClickListener{
-//            Toast.makeText(this, mp3mutable[0][1], Toast.LENGTH_SHORT).show()
-            fetchMP3Files()
+            Toast.makeText(this, mp3mutable[1][0]+" at "+mp3mutable[1][1], Toast.LENGTH_SHORT).show()
+//            Toast.makeText(this, toString(fetchMP3Files()), Toast.LENGTH_SHORT).show()
+            try {
+                val path = File(mp3mutable[1][1])
+                Toast.makeText(this, "success 1", Toast.LENGTH_SHORT).show()
+                val uri: Uri = Uri.fromFile(path)
+                Toast.makeText(this, "success 2", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show()
+                mediaPlayer.setDataSource("path:/"+mp3mutable[1][1] )
+//                ^^^ this is broken ^^^
+
+
+                Toast.makeText(this, "success 3", Toast.LENGTH_SHORT).show()
+            } catch (e : Exception) {
+                e.printStackTrace()
+
+            }
+
         }
 
         mainlayBinding.Qeue.setOnClickListener {
             setContentView(qeueBinding.root)
         }
 
-        fun fetchMP3Files() {
-            val projection = arrayOf(
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.DURATION
-            )
-            val selection = "${MediaStore.Audio.Media.MIME_TYPE} = ?"
-            val selectionArgs = arrayOf("audio/mpeg")
 
-            val cursor: Cursor? = contentResolver.query(
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                selection,
-                selectionArgs,
-                null
-            )
-
-            cursor?.use {
-                val dataIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-                val titleIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                val durationIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-
-                while (it.moveToNext()) {
-                    val filePath = it.getString(dataIndex)
-                    val title = it.getString(titleIndex)
-                    val duration = it.getLong(durationIndex)
-                mp3mutable.add(arrayOf("null",filePath,title))
-
-                }
-            }
-
-
-        } /////////////////////////////////
 
 
 
@@ -284,7 +270,10 @@ class MainActivity : ComponentActivity() {
     }
 
     // Function to scan for MP3 files
-    fun scanForMP3Files() {
+    //make this into the fetch function
+    private fun scanForMP3Files(): MutableList<Array<String>> {
+        val array1 = arrayOf(arrayOf("title","path"))
+        val mp3mutable = array1.toMutableList()
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,           // File ID
             MediaStore.Audio.Media.TITLE,         // File title
@@ -315,56 +304,22 @@ class MainActivity : ComponentActivity() {
                 val title = cursor.getString(titleColumn)
                 val artist = cursor.getString(artistColumn)
                 val path = cursor.getString(dataColumn)
-
                 // You can display or store the MP3 file data (title, artist, path)
                 Toast.makeText(this, "Found MP3: $title by $artist", Toast.LENGTH_SHORT).show()
+                mp3mutable.add(arrayOf("$title","$path"))
 
                 // Handle the file path (e.g., you can add it to a list or play it)
             } while (cursor.moveToNext())
             cursor.close()
+            return mp3mutable
         } else {
             Toast.makeText(this, "No MP3 files found", Toast.LENGTH_SHORT).show()
+            return mp3mutable
         }
     } //////////////////////////
 
 
-    private fun fetchMP3Files(): MutableList<Array<String>> {
-        val array1 = arrayOf(
-                arrayOf("title","path")
-                )
-        var mp3mutable = array1.toMutableList()
-        val projection = arrayOf(
-            MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.DURATION
-        )
-        val selection = "${MediaStore.Audio.Media.MIME_TYPE} = ?"
-        val selectionArgs = arrayOf("audio/mpeg")
-
-        val cursor: Cursor? = contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            selection,
-            selectionArgs,
-            null
-        )
-
-        cursor?.use {
-            val dataIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-            val titleIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-            val durationIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-
-            while (it.moveToNext()) {
-                val filePath = it.getString(dataIndex)
-                val title = it.getString(titleIndex)
-                val duration = it.getLong(durationIndex)
-                mp3mutable.add(arrayOf(title,filePath))
-
-            }
-        }
-        return mp3mutable
-
-    } /////////////////////////////////
+    /////////////////////////////////
 
 
 }
