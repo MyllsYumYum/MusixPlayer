@@ -102,14 +102,16 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <EditText
+    <SearchView
         android:id="@+id/searchBar"
-        android:layout_width="290dp"
+        android:layout_width="0dp"
         android:layout_height="41dp"
-        android:ems="10"
-        android:hint="Search Title"
-        android:inputType="text"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:queryHint="Search Title"
         app:layout_constraintBottom_toBottomOf="@+id/topBar"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/menu_3"
         app:layout_constraintTop_toTopOf="@+id/topBar" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

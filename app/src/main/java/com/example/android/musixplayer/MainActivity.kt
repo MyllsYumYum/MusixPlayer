@@ -22,6 +22,7 @@ import android.widget.Filter
 import android.widget.Filterable
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.SearchView
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
@@ -74,7 +75,7 @@ class MP3Adapter(
 
     override fun onBindViewHolder(holder: MP3ViewHolder, position: Int) {
         // Get the current MP3 item
-        val mp3 = mp3List[position]
+        val mp3 = filteredList[position]
 
         // Bind data to views
         holder.titleTextView.text = mp3[1].toString()  // Title
@@ -87,7 +88,7 @@ class MP3Adapter(
     }
 
     override fun getItemCount(): Int {
-        return mp3List.size
+        return filteredList.size
     }
 
     override fun getFilter(): Filter {
@@ -140,6 +141,7 @@ class MainActivity : ComponentActivity() {
 
         var mp3mutable : MutableList<Array<Any>> = mutableListOf()
         mp3mutable = scanForMP3Files()
+        var idTracker = 0
         var titlebar1 = mainlayBinding.titleView1
         var titlebar2 = menuBinding.titleView2
         var titlebar3 = qeueBinding.titleView3
@@ -157,7 +159,10 @@ class MainActivity : ComponentActivity() {
         var coroutinepause = false
         var mediaPlayer = MediaPlayer.create(this, R.raw.boi)
 
+
         val recyclerView: RecyclerView = qeueBinding.recycler
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        val recyclerView2: RecyclerView = menuBinding.recycler
         recyclerView.layoutManager = LinearLayoutManager(this)
 
 
@@ -205,6 +210,7 @@ class MainActivity : ComponentActivity() {
                 menuBinding.titleView2.text = music[1].toString()
                 qeueBinding.titleView3.text = music[1].toString()
                 mainlayBinding.titleView1.text = music[1].toString()
+                idTracker = mp3mutable.indexOf(music)
             } catch (e : Exception){
                 Toast.makeText(this,"Media Failed to Load", Toast.LENGTH_SHORT).show()
                 Log.d("MEDIAPLAYER","New Media Failed to Load")
@@ -212,11 +218,30 @@ class MainActivity : ComponentActivity() {
 
         }
 
+        mediaSwitch(mp3mutable[1])
 
         val adapter = MP3Adapter(mp3mutable) {selectedItem ->
             mediaSwitch(selectedItem)
         }
         qeueBinding.recycler.adapter = adapter
+        menuBinding.recycler.adapter = adapter
+
+        val searchView: SearchView = qeueBinding.searchBar
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                // Optionally handle query submission if needed
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                // Pass the search query to the adapter's filter method
+                adapter.filter.filter(newText)
+                return true
+            }
+
+        })
+
+
 
         seekBar.max = mediaPlayer.duration
         titlebar1.text = mp3mutable[0][1].toString()
@@ -343,10 +368,11 @@ class MainActivity : ComponentActivity() {
         }
 
         mainlayBinding.previousbutt.setOnClickListener{
-
+            mediaSwitch(mp3mutable[idTracker - 1])
         }
 
         mainlayBinding.nextbutt.setOnClickListener {
+            mediaSwitch(mp3mutable[idTracker + 1])
 
         }
 
@@ -363,7 +389,9 @@ class MainActivity : ComponentActivity() {
             seekBar.progress = 0
             if (true) { // if repeat is on
                 mediaPlayer.seekTo(0)
+
             }
+            mediaSwitch(mp3mutable[idTracker + 1])
         }
     }
 

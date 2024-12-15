@@ -31,6 +31,7 @@
         android:id="@+id/mainContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="#FF9696"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -99,7 +100,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="40dp"
         android:backgroundTint="#FF9696"
-        android:src="@mipmap/eye1"
+        android:src="@mipmap/logo2_1_round"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topBar" />
 
@@ -109,7 +110,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:backgroundTint="#FF9696"
-        android:src="@mipmap/cat"
+        android:src="@mipmap/logo2_1_round"
         app:layout_constraintEnd_toStartOf="@+id/imageButton4"
         app:layout_constraintHorizontal_bias="0.486"
         app:layout_constraintStart_toEndOf="@+id/imageButton2"
@@ -122,7 +123,7 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="20dp"
         android:backgroundTint="#FF9696"
-        android:src="@mipmap/eye2"
+        android:src="@mipmap/logo2_1_round"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topBar" />
 
@@ -132,7 +133,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:backgroundTint="#FF9696"
-        android:src="@mipmap/cat"
+        android:src="@mipmap/logo2_1_round"
         app:layout_constraintEnd_toStartOf="@+id/imageButton4"
         app:layout_constraintStart_toEndOf="@+id/imageButton2"
         app:layout_constraintTop_toBottomOf="@+id/imageButton10" />
@@ -144,7 +145,7 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="24dp"
         android:backgroundTint="#FF9696"
-        android:src="@mipmap/eye2"
+        android:src="@mipmap/logo2_1_round"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageButton9" />
 
@@ -155,7 +156,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="40dp"
         android:backgroundTint="#FF9696"
-        android:src="@mipmap/eye1"
+        android:src="@mipmap/logo2_1_round"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageButton8" />
 

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="#691C33">
 
     <ImageView
         android:id="@+id/imageView2"
@@ -12,7 +12,7 @@
         android:layout_height="150dp"
         android:background="#A8FF0000"
         android:importantForAccessibility="no"
-        android:src="@mipmap/logo2_2"
+        android:src="@mipmap/logo2_2_round"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

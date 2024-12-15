@@ -5,27 +5,30 @@
     android:layout_margin="8dp">
 
     <LinearLayout
-        android:orientation="vertical"
-        android:padding="16dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="#FF9696"
+        android:orientation="vertical"
+        android:padding="16dp">
 
         <!-- Title TextView (big text) -->
         <TextView
             android:id="@+id/titleTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Song Title"
+            android:textColor="#000000"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:text="Song Title" />
+            android:textStyle="bold" />
 
         <!-- Path TextView (small text) -->
         <TextView
             android:id="@+id/pathTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:text="Song Path" />
+            android:text="Song Path"
+            android:textColor="#000000"
+            android:textSize="12sp" />
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
