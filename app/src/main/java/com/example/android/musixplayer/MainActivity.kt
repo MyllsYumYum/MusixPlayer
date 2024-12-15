@@ -2,6 +2,7 @@ package com.example.android.musixplayer
 
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.content.Context
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.media.MediaPlayer
@@ -13,7 +14,12 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Filter
+import android.widget.Filterable
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.SeekBar
@@ -30,8 +36,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.android.musixplayer.databinding.IntroBinding
+import com.example.android.musixplayer.databinding.ItemlayoutBinding
 import com.example.android.musixplayer.databinding.MainLayoutBinding
 import com.example.android.musixplayer.databinding.MainMenuBinding
 import com.example.android.musixplayer.databinding.QeueListBinding
@@ -40,6 +48,75 @@ import java.io.File
 
 import kotlinx.coroutines.*
 import java.io.IOException
+
+
+
+class MP3Adapter(
+    private val mp3List: List<Array<Any>>,
+    private val onItemClick: (Array<Any>) -> Unit
+
+) : RecyclerView.Adapter<MP3Adapter.MP3ViewHolder>(),Filterable {
+
+    private var filteredList: List<Array<Any>> = mp3List  // List of filtered items
+
+//    private lateinit var itemView: ItemlayoutBinding Z
+    // ViewHolder class to hold the item views
+    class MP3ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
+        val pathTextView: TextView = itemView.findViewById(R.id.pathTextView)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MP3ViewHolder {
+        // Inflate the layout for each item
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.itemlayout, parent, false)
+        return MP3ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: MP3ViewHolder, position: Int) {
+        // Get the current MP3 item
+        val mp3 = mp3List[position]
+
+        // Bind data to views
+        holder.titleTextView.text = mp3[1].toString()  // Title
+        holder.pathTextView.text = mp3[2].toString()  // Path
+        // Set click listener for the item
+        holder.itemView.setOnClickListener {
+            // When an item is clicked, pass the item data to the onItemClick lambda
+            onItemClick(mp3)
+        }
+    }
+
+    override fun getItemCount(): Int {
+        return mp3List.size
+    }
+
+    override fun getFilter(): Filter {
+        return object : Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val query = constraint.toString().lowercase()
+                filteredList = if (query.isEmpty()) {
+                    mp3List  // Show all items if search query is empty
+                } else {
+                    mp3List.filter {
+                        it[1].toString().lowercase().contains(query)  // Filter by title (you can extend it to search by other fields)
+                    }
+                }
+
+                val filterResults = FilterResults()
+                filterResults.values = filteredList
+                return filterResults
+            }
+
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                results?.let {
+                    filteredList = it.values as List<Array<Any>>
+                    notifyDataSetChanged()  // Notify adapter of changes
+                }
+            }
+        }
+    }
+
+}
 
 
 class MainActivity : ComponentActivity() {
@@ -51,7 +128,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge()
         // list of views
         introBinding = IntroBinding.inflate(layoutInflater)
         mainlayBinding = MainLayoutBinding.inflate(layoutInflater)
@@ -60,13 +137,10 @@ class MainActivity : ComponentActivity() {
         //into procedure
         setContentView(introBinding.root)
 
-        val mp3List = arrayOf(
-            arrayOf<Any>("id","title","filepath"),
-                )
-        var mp3mutable = mp3List.toMutableList()
+
+        var mp3mutable : MutableList<Array<Any>> = mutableListOf()
         mp3mutable = scanForMP3Files()
         var titlebar1 = mainlayBinding.titleView1
-
         var titlebar2 = menuBinding.titleView2
         var titlebar3 = qeueBinding.titleView3
         var menu1 = mainlayBinding.menu1
@@ -82,7 +156,12 @@ class MainActivity : ComponentActivity() {
         var prog2 = qeueBinding.progressBar2
         var coroutinepause = false
         var mediaPlayer = MediaPlayer.create(this, R.raw.boi)
-//        mediaPlayer.setDataSource("/storage/emulated/0/Samsung/Music/Over_the_Horizon.mp3")
+
+        val recyclerView: RecyclerView = qeueBinding.recycler
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+
+
 //        // Check for permission if needed
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -98,14 +177,11 @@ class MainActivity : ComponentActivity() {
         } else {
              // Directly scan on older versions
         }
-
-
         fun playpause() {
             if (!mediaPlayer.isPlaying) {
                 playButton.setImageResource(android.R.drawable.ic_media_pause)
                 menuBinding.play2.setImageResource(android.R.drawable.ic_media_pause)
                 qeueBinding.play3.setImageResource(android.R.drawable.ic_media_pause)
-                //handler.post(updateSeekBar)
                 mediaPlayer.start()
 
             } else {
@@ -117,8 +193,32 @@ class MainActivity : ComponentActivity() {
 
         }
 
+        fun mediaSwitch(music : Array<Any>){
+            try {
+
+                mediaPlayer.reset()
+                val uri : Uri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    music[0] as Long )
+                mediaPlayer.setDataSource(this,uri)
+                mediaPlayer.prepare()
+                playpause()
+                menuBinding.titleView2.text = music[1].toString()
+                qeueBinding.titleView3.text = music[1].toString()
+                mainlayBinding.titleView1.text = music[1].toString()
+            } catch (e : Exception){
+                Toast.makeText(this,"Media Failed to Load", Toast.LENGTH_SHORT).show()
+                Log.d("MEDIAPLAYER","New Media Failed to Load")
+            }
+
+        }
+
+
+        val adapter = MP3Adapter(mp3mutable) {selectedItem ->
+            mediaSwitch(selectedItem)
+        }
+        qeueBinding.recycler.adapter = adapter
+
         seekBar.max = mediaPlayer.duration
-//        titlebar1.text = getString(R.string.title)
         titlebar1.text = mp3mutable[0][1].toString()
 
         var curtrack = mediaPlayer.currentPosition
@@ -203,14 +303,14 @@ class MainActivity : ComponentActivity() {
         titlebar3.setOnClickListener {
             setContentView(mainlayBinding.root)
         }
-
-        menuBinding.botBar.setOnClickListener {
-            setContentView(mainlayBinding.root)
-        }
-
-        qeueBinding.botBar.setOnClickListener {
-            setContentView(mainlayBinding.root)
-        }
+//
+//        menuBinding.botBar.setOnClickListener {
+//            setContentView(mainlayBinding.root)
+//        }
+//
+//        qeueBinding.botBar.setOnClickListener {
+//            setContentView(mainlayBinding.root)
+//        }
 
         menu1.setOnClickListener {
             setContentView(menuBinding.root)
@@ -235,61 +335,21 @@ class MainActivity : ComponentActivity() {
         }
 
         menuBinding.imageButton8.setOnClickListener{
-            coroutinepause = true
-            Toast.makeText(this, mp3mutable[1][0].toString() +" titled "+mp3mutable[1][1], Toast.LENGTH_SHORT).show()
-            Toast.makeText(this, mp3mutable[1][2].toString(), Toast.LENGTH_SHORT).show()
-            try {
-//                val path = File(mp3mutable[1][1])
-//                val uri: Uri = Uri.fromFile(path)
-                val uri: Uri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    mp3mutable[1][0] as Long
-                ) /////
-                Toast.makeText(this, "success 1", Toast.LENGTH_SHORT).show()
-//                Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show()
-//                Toast.makeText(this, uri.toString(), Toast.LENGTH_LONG).show()
-
-                val cursor = contentResolver.query(
-                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    arrayOf(MediaStore.Audio.Media.DATA), // Get the file path
-                    "${MediaStore.Audio.Media._ID} = ?",
-                    arrayOf("15"), // Replace "15" with your ID
-                    null
-                )
-
-                if (cursor != null && cursor.moveToFirst()) {
-                    val filePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
-                    Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show()
-                    println("File path: $filePath")
-                    mainlayBinding.titleView1.text = uri.toString()
-                    Log.d("MediaPlayer", "URI: $uri")
-                    mediaPlayer.reset()
-                    mediaPlayer.setDataSource(this, uri)
-                    mediaPlayer.prepare()
-                    Toast.makeText(this, "this worked", Toast.LENGTH_SHORT).show()
-
-
-                } else {
-                    println("No file found with ID 15 in MediaStore")
-                    Toast.makeText(this, "No file found with ID 15 in MediaStore", Toast.LENGTH_SHORT).show()
-                }
-                cursor?.close()
-//                mediaPlayer.setDataSource(this , uri)
-//                ^^^ this is broken ^^^
-
-
-                Toast.makeText(this, "success 2", Toast.LENGTH_SHORT).show()
-            } catch (e : Exception) {
-                e.printStackTrace()
-//                mainlayBinding.titleView1.text = e.message.toString()
-
-            }
-            coroutinepause = false
-
+            mediaSwitch(mp3mutable[1])
         }
 
         mainlayBinding.Qeue.setOnClickListener {
             setContentView(qeueBinding.root)
         }
+
+        mainlayBinding.previousbutt.setOnClickListener{
+
+        }
+
+        mainlayBinding.nextbutt.setOnClickListener {
+
+        }
+
 
 
 
@@ -306,6 +366,8 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+
 
     // Function to scan for MP3 files
     //make this into the fetch function
@@ -355,6 +417,7 @@ class MainActivity : ComponentActivity() {
             return mp3mutable
         }
     } //////////////////////////
+
 
 
     /////////////////////////////////

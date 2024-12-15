@@ -83,13 +83,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:importantForAccessibility="no"
-            android:src="@android:drawable/ic_media_pause"
+            android:src="@android:drawable/ic_media_play"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/botBar"
-            app:layout_constraintStart_toEndOf="@+id/titleView2"
             app:layout_constraintTop_toBottomOf="@+id/progressBar2" />
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="24dp"
@@ -101,4 +101,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <EditText
+        android:id="@+id/searchBar"
+        android:layout_width="290dp"
+        android:layout_height="41dp"
+        android:ems="10"
+        android:hint="Search Title"
+        android:inputType="text"
+        app:layout_constraintBottom_toBottomOf="@+id/topBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/topBar" />
 </androidx.constraintlayout.widget.ConstraintLayout>
